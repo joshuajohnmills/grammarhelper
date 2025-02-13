@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basic Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .quiz-container {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      padding: 30px;
+      max-width: 600px;
+      width: 90%;
+      text-align: center;
+      position: relative;
+    }
+    h1 {
+      margin-top: 0;
+    }
+    #questionContainer {
+      margin-bottom: 20px;
+    }
+    #questionText {
+      font-size: 1.5em; /* Larger question display */
+      margin-bottom: 10px;
+    }
+    input[type="text"] {
+      padding: 12px;
+      font-size: 1.2em; /* Larger answer input */
+      width: 100%;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      margin: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #feedback {
+      margin-top: 20px;
+      font-weight: bold;
+      min-height: 24px;
+    }
+    /* Status numbers at the bottom */
+    small#statusNumbers {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      font-size: 0.8em;
+      color: #555;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <h1>Quiz Time!</h1>
+    <div id="questionContainer">
+      <p id="questionText">Click "Get Question" to start.</p>
+    </div>
+    <input type="text" id="answerInput" placeholder="Your answer here" />
+    <br />
+    <button id="submitButton">Submit Answer</button>
+    <button id="questionButton">Get Question</button>
+    <div id="feedback"></div>
+    <small id="statusNumbers">Loading status...</small>
+  </div>
+
+  <script>
+    // Quiz data: one sample question
+    let question = "What is 2 + 2?";
+
+    // Get DOM elements
+    let questionText = document.getElementById("questionText");
+    let answerInput = document.getElementById("answerInput");
+    let feedback = document.getElementById("feedback");
+    let submitButton = document.getElementById("submitButton");
+    let questionButton = document.getElementById("questionButton");
+    let statusNumbers = document.getElementById("statusNumbers");
+
+    // Display the question when "Get Question" is clicked
+    questionButton.addEventListener("click", function () {
+        fetchQuestion();
+        answerInput.value = "";
+        feedback.textContent = "";
+    });
+
+    // Validate the answer when "Submit Answer" is clicked
+    submitButton.addEventListener("click", function () {
+        // send the answer to the server for validation
+        fetch('/answer', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ answer: answerInput.value }),
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(data);
+            feedback.textContent = data.feedback;
+        })
+        
+    });
+
+    // Fetch the status numbers from the server using vanilla JavaScript (AJAX)
+    function fetchStatusNumbers() {
+      fetch('/numbers')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          statusNumbers.textContent = `Questions to go: ${data.questions_to_go} | Revisions to go: ${data.revisions_to_go} | Recaps to go: ${data.recaps_to_go}`;
+        })
+        .catch(error => {
+          console.error('Error fetching status numbers:', error);
+          statusNumbers.textContent = "Failed to load status numbers.";
+        });
+    }
+    function fetchQuestion() {
+      fetch('/question')
+      .then(response => {
+  if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return response.json();
+    })
+    .then(data => {
+    console.log(data);
+    
+    questionText.textContent = data.question ;
+    })
+
+    }
+
+
+
+    // Fetch the numbers on page load
+    fetchStatusNumbers();
+  </script>
+</body>
+</html>

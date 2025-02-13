@@ -1,0 +1,9 @@
+# Ignore all PDF files
+*.pdf
+
+# Ignore __pycache__ directories
+__pycache__/
+
+# Ignore all files in the topics folder that are not .txt files
+topics/*
+!topics/*.txt
